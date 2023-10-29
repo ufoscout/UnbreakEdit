@@ -1,0 +1,10 @@
+[package]
+name = "ui_iced"
+version.workspace = true
+edition.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ui_common = { path = "../ui_common" }
+iced = { workspace = true, features = ["advanced", "lazy"]}
