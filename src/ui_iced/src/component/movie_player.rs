@@ -35,8 +35,8 @@ impl Sandbox for MoviePlayerComponent {
         }
     }
 
-    fn update(&mut self, _message: MoviePlayerMessage) {
-        match _message {
+    fn update(&mut self, message: MoviePlayerMessage) {
+        match message {
             MoviePlayerMessage::ButtonPressed => {
                 match self.play_status {
                     PlayStatus::Play => {
@@ -74,7 +74,7 @@ impl <Message> Component<Message, Renderer> for MoviePlayerComponent {
 
     fn update(
         &mut self,
-        state: &mut Self::State,
+        _state: &mut Self::State,
         event: Self::Event,
     ) -> Option<Message> {
         match event {
@@ -92,7 +92,7 @@ impl <Message> Component<Message, Renderer> for MoviePlayerComponent {
         None
     }
 
-    fn view(&self, state: &Self::State) -> iced::advanced::graphics::core::Element<'_, Self::Event, Renderer> {
+    fn view(&self, _state: &Self::State) -> iced::advanced::graphics::core::Element<'_, Self::Event, Renderer> {
         let text = text(format!("{:?}", self.play_status)).size(50);
 
         let button = button("Play/Stop")
