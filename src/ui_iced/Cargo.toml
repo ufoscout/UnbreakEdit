@@ -6,5 +6,8 @@ edition.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ui_common = { path = "../ui_common" }
-iced = { workspace = true, features = ["advanced", "lazy"]}
+ui_common = { workspace = true }
+backend_gstreamer = { workspace = true }
+
+iced = { workspace = true, features = ["advanced", "image", "lazy"]}
+url = { workspace = true }
