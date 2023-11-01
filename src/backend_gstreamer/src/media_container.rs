@@ -1,21 +1,19 @@
 use backend_common::error::Error;
+use crossbeam_channel::Receiver;
 use glib::{Cast, ObjectExt};
 use gstreamer::prelude::ElementExtManual;
 use gstreamer_app::prelude::{ElementExt, PadExt, GstBinExt};
 use num_rational::Rational32;
-use std::sync::{mpsc, Arc, Mutex};
 
 pub struct MediaContainer {
-    bus: gstreamer::Bus,
+    // bus: gstreamer::Bus,
     source: gstreamer::Bin,
 
     width: u32,
     height: u32,
     framerate: Rational32,
     duration: std::time::Duration,
-    frame: Arc<Mutex<Option<Vec<u8>>>>,
-    wait: mpsc::Receiver<()>,
-    paused: bool,
+    frame_receiver: Receiver<Vec<u8>>,
     muted: bool,
     looping: bool,
     is_eos: bool,
@@ -49,10 +47,7 @@ impl MediaContainer {
         let app_sink = bin.by_name("app_sink").unwrap();
         let app_sink = app_sink.downcast::<gstreamer_app::AppSink>().unwrap();
 
-        let frame = Arc::new(Mutex::new(None));
-        let frame_ref = Arc::clone(&frame);
-
-        let (notify, wait) = mpsc::channel();
+        let (frame_sender, frame_receiver) = crossbeam_channel::bounded(5);
 
         app_sink.set_callbacks(
             gstreamer_app::AppSinkCallbacks::builder()
@@ -68,11 +63,19 @@ impl MediaContainer {
                     let width = s.get::<i32>("width").map_err(|_| gstreamer::FlowError::Error)?;
                     let height = s.get::<i32>("height").map_err(|_| gstreamer::FlowError::Error)?;
 
-                    println!("video callback: {}x{}", width, height);
-                    *frame_ref.lock().map_err(|_| gstreamer::FlowError::Error)? =
-                        Some(map.as_slice().to_owned());
+                    // let thread_id = std::thread::current().id();
+                    //println!("thread_id {:?} - video callback: {}x{}", thread_id, width, height);
 
-                    notify.send(()).map_err(|_| gstreamer::FlowError::Error)?;
+                    if !frame_sender.is_full() {
+                        match frame_sender.try_send(map.as_slice().to_owned()) {
+                            Ok(_) => {
+                                println!("sent frame in the channel");
+                            },
+                            Err(err) => {
+                                println!("failed to send frame in the channel: {}", err);
+                            }
+                        }
+                    }
 
                     Ok(gstreamer::FlowSuccess::Ok)
                 })
@@ -105,7 +108,7 @@ impl MediaContainer {
         };
 
         Ok(MediaContainer {
-            bus: source.bus().unwrap(),
+            // bus: source.bus().unwrap(),
             source,
 
             width: width as _,
@@ -113,9 +116,8 @@ impl MediaContainer {
             framerate: framerate.into(),
             duration,
 
-            frame,
-            wait,
-            paused: false,
+            frame_receiver,
+            // wait,
             muted: false,
             looping: false,
             is_eos: false,
@@ -175,6 +177,8 @@ impl MediaContainer {
     
         /// Set if the media is paused or not.
         pub fn set_paused(&mut self, paused: bool) {
+
+            // println!("start set state to paused: {paused}. Is lock? {}",self.source.is_locked_state());
             self.source
                 .set_state(if paused {
                     gstreamer::State::Paused
@@ -182,18 +186,24 @@ impl MediaContainer {
                     gstreamer::State::Playing
                 })
                 .unwrap(/* state was changed in ctor; state errors caught there */);
-            self.paused = paused;
+            // self.paused = paused;
     
+            // println!("done set state to paused: {paused}");
+
             // Set restart_stream flag to make the stream restart on the next Message::NextFrame
             if self.is_eos && !paused {
                 self.restart_stream = true;
             }
+
+            // println!("completed set state to paused: {paused}");
         }
     
         /// Get if the media is paused or not.
         #[inline(always)]
         pub fn paused(&self) -> bool {
-            self.paused
+
+            self.source.current_state() == gstreamer::State::Paused
+            // self.paused/
         }
     
         /// Jumps to a specific position in the media.
@@ -286,26 +296,11 @@ impl MediaContainer {
         //     Command::none()
         // }
     
-        // pub fn subscription(&self) -> Subscription<VideoPlayerMessage> {
-        //     if self.restart_stream || (!self.is_eos && !self.paused()) {
-        //         iced::time::every(Duration::from_secs_f64(0.5 / self.framerate))
-        //             .map(|_| VideoPlayerMessage::NextFrame)
-        //     } else {
-        //         Subscription::none()
-        //     }
-        // }
-    
         /// Get the current frame.
-        pub fn frame_image(&self) -> Arc<Mutex<Option<Vec<u8>>>> {
-            self.frame
-                .clone()
+        pub fn frame_receiver(&self) -> &Receiver<Vec<u8>> {
+            &self.frame_receiver
         }
-    
-        // /// Wrap the output of `frame_image` in an `Image` widget.
-        // pub fn frame_view(&self) -> Image<Handle> {
-        //     Image::new(self.frame_image())
-        // }
-    
+   
         // /// Restarts a stream; seeks to the first frame and unpauses, sets the `eos` flag to false.
         // pub fn restart_stream(&mut self) -> Result<(), Error> {
         //     self.is_eos = false;

@@ -8,8 +8,9 @@ edition.workspace = true
 [dependencies]
 backend_common = { workspace = true }
 
+crossbeam-channel = { workspace = true }
+glib = { workspace = true }
 gstreamer = { workspace = true }
 gstreamer-app = { workspace = true } 
-glib = { workspace = true }
 num-rational = { workspace = true }
 url = { workspace = true }

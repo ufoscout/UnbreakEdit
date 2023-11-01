@@ -13,8 +13,6 @@ members = [
     "src/backend_gstreamer",
     "src/ui_common",
     "src/ui_egui",
-    "src/ui_iced",
-    "src/ui_slint",
 ]
 
 [workspace.dependencies]
@@ -23,12 +21,9 @@ backend_common = { path = "src/backend_common" }
 backend_ffmpeg = { path = "src/backend_ffmpeg" }
 backend_gstreamer = { path = "src/backend_gstreamer" }
 ui_common = { path = "src/ui_common" }
-ui_iced = { path = "src/ui_iced" }
-ui_slint = { path = "src/ui_slint" }
+ui_egui = { path = "src/ui_iced" }
 
-iced = { version = "0.10" }
-slint = { version = "1.2" }
-
+crossbeam-channel = "0.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0.30"
