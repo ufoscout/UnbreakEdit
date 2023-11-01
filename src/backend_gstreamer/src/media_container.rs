@@ -82,7 +82,7 @@ impl MediaContainer {
                 .build(),
         );
 
-        source.set_state(gstreamer::State::Playing).map_err(|_| Error::MediaStateChangeError("".to_owned())).unwrap();
+        source.set_state(gstreamer::State::Paused).map_err(|_| Error::MediaStateChangeError("".to_owned())).unwrap();
 
         // wait for up to 5 seconds until the decoder gets the source capabilities
         source.state(gstreamer::ClockTime::from_seconds(5)).0.unwrap();

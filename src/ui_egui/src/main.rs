@@ -41,16 +41,19 @@ impl UnbreakEditApp {
                     .unwrap()
                     .parent()
                     .unwrap()
-                    .join("media/test.mp4")
+                    .join("media/tests/test_001.mp4")
                     .canonicalize()
                     .unwrap();
                 println!("file [{}]: {}", file.exists(), file.display());
 
                 let mut content = vec![];
 
+                let mut media_container = media_manager.create_media_container(&url::Url::from_file_path(file.clone()).unwrap(), false).unwrap();
+                media_container.set_paused(true);
+
                 content.push(MediaState {
                     last_texture: None,
-                    media_container: media_manager.create_media_container(&url::Url::from_file_path(file.clone()).unwrap(), false).unwrap()
+                    media_container
                 });
         // content.push(media_manager.create_media_container(&url::Url::from_file_path(file).unwrap(), false).unwrap());
         Self {
@@ -76,7 +79,7 @@ impl eframe::App for UnbreakEditApp {
                     let (width, height) = content.media_container.size();
                     content.last_texture = Some(ui.ctx().load_texture(
                         "video",
-                        video_frame_to_image(width, height, &data),
+                        ColorImage::from_rgba_premultiplied([width as usize, height as usize], &data),
                         Default::default()
                         ));
                 }
@@ -84,12 +87,12 @@ impl eframe::App for UnbreakEditApp {
                 if let Some(texture) = &content.last_texture {
                     let image = Image::new(SizedTexture::new(texture.id(), texture.size_vec2()));
                     ui.add(image);
-                    
-                        let paused = content.media_container.paused();
-                        if ui.button(if paused {"Play"} else {"Pause"}).clicked() {
-                            content.media_container
-                            .set_paused(!paused);
-                    }
+                }
+
+                let paused = content.media_container.paused();
+                if ui.button(if paused {"Play"} else {"Pause"}).clicked() {
+                    content.media_container
+                    .set_paused(!paused);
                 }
 
             }
@@ -98,13 +101,4 @@ impl eframe::App for UnbreakEditApp {
             
         });
     }
-}
-
-fn video_frame_to_image(width: u32, height: u32, data: &[u8]) -> ColorImage {
-    let size = [width as usize, height as usize];
-    let pixel_size_bytes = 4;
-    let pixels: Vec<_> = data.chunks_exact(pixel_size_bytes)
-                .map(|p| Color32::from_rgba_premultiplied(p[0], p[1], p[2], p[3])).collect();
-            // println!("pixels: {}", pixels.len());
-    ColorImage { size, pixels }
 }
