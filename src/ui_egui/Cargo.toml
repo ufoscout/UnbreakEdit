@@ -1,0 +1,15 @@
+[package]
+name = "ui_egui"
+version.workspace = true
+edition.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ui_common = { workspace = true }
+backend_gstreamer = { workspace = true }
+
+egui = { workspace = true }
+egui_extras = { workspace = true }
+eframe = { workspace = true }
+url = { workspace = true }

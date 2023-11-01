@@ -12,6 +12,7 @@ members = [
     "src/backend_ffmpeg",
     "src/backend_gstreamer",
     "src/ui_common",
+    "src/ui_egui",
     "src/ui_iced",
     "src/ui_slint",
 ]
@@ -39,4 +40,8 @@ gstreamer-app = "0.21" # appsink
 glib = "0.18" # gobject traits and error type
 num-rational = "0.4"
 
+# ui_egui
+egui = "0.23.0"
+egui_extras = "0.23"
+eframe = "0.23.0"
 

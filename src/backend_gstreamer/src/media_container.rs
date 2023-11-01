@@ -34,7 +34,7 @@ impl MediaContainer {
 
     /// Creates a new media container.
     pub fn new(uri: &url::Url, live: bool) -> Result<Self, Error> {
-        let source = gstreamer::parse_launch(&format!("playbin uri=\"{}\" video-sink=\"videoconvert ! videoscale ! appsink name=app_sink caps=video/x-raw,format=BGRA,pixel-aspect-ratio=1/1\"", uri.as_str())).unwrap();
+        let source = gstreamer::parse_launch(&format!("playbin uri=\"{}\" video-sink=\"videoconvert ! videoscale ! appsink name=app_sink caps=video/x-raw,format=RGBA,pixel-aspect-ratio=1/1\"", uri.as_str())).unwrap();
         let source = source.downcast::<gstreamer::Bin>().unwrap();
 
         let video_sink: gstreamer::Element = source.property("video-sink");
